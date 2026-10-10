@@ -4,7 +4,7 @@ Community nodes for controlling [OpenAgentHub](https://github.com/open-agenthub/
 
 ## Installation
 
-Once a version has been published to npm, install `n8n-nodes-openagenthub` through **Settings → Community Nodes** in a self-hosted n8n instance. This repository initially provides source code; creating the repository does not publish a package or make it an n8n verified community node.
+Install `n8n-nodes-openagenthub` through **Settings → Community Nodes** in a self-hosted n8n instance. The package is published on npm. Publication does not make it an n8n verified community node.
 
 For local development:
 

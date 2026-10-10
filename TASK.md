@@ -30,3 +30,9 @@
 - Produktionsaudit: 0 Befunde.
 - Keine Live-Deployment-Tests und keine npm-Veröffentlichung durchgeführt.
 - GitHub-CI: [Workflow-Status](https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/workflows/ci.yml); wird nach dem Push zusätzlich kontrolliert.
+
+## GitHub/npm-Verknüpfung validieren
+
+- 0.1.0 manuell auf npm veröffentlicht und Paketinhalt geprüft.
+- 0.1.1 als Patch-Release über GitHub Actions veröffentlichen, um die neu konfigurierte npm Trusted-Publisher-Verknüpfung vor Ablauf am 2026-10-12 zu validieren.
+- Version/Lockfile aktualisiert und Installationsdokumentation an veröffentlichtes Paket angepasst; Node-Verhalten unverändert.
