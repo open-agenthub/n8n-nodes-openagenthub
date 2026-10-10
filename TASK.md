@@ -52,3 +52,11 @@
 - Dynamische Account-Auswahl mit token-scope-gefilterter Remote-API; zusätzliche UI-Kataloge nur mit Benutzer-JWT.
 - Bestehende Node-v1-Workflows weiterhin ausführbar lassen.
 - Tests, Build, CI und npm-Release des Updates prüfen.
+
+### Prüfung Version 0.2.0
+
+- 36 Tests erfolgreich; Typecheck, Lint (0 Fehler), Build und Paketvorschau erfolgreich.
+- Ausgelieferte Node-/Credential-Klassen geladen; Logo mit upstream verglichen; Produktionsaudit ohne Befunde.
+- Kein Live-Test gegen laufende AgentHub-/n8n-Instanzen.
+- GitHub CI erfolgreich: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/38054828169
+- Release v0.2.0 erstellt; npm-Publish über Trusted Publisher erfolgreich: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/38054902220
