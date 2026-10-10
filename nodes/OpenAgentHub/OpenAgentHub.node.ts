@@ -14,6 +14,10 @@ import {
   testApiCredential,
 } from "./transport";
 
+import { sessionFields } from "./sessionFields";
+import { buildSessionPayload } from "./sessionPayload";
+import { loadOptions } from "./discovery";
+
 const remoteOperations = [
   "create",
   "get",
@@ -25,7 +29,7 @@ const remoteOperations = [
   "transcript",
 ];
 export class OpenAgentHub implements INodeType {
-  methods = { credentialTest: { testApiCredential } };
+  methods = { credentialTest: { testApiCredential }, loadOptions };
   description: INodeTypeDescription = {
     usableAsTool: true,
     icon: { light: "file:openagenthub.svg", dark: "file:openagenthub.svg" },
@@ -33,7 +37,8 @@ export class OpenAgentHub implements INodeType {
     displayName: "OpenAgentHub",
     name: "openAgentHub",
     group: ["transform"],
-    version: 1,
+    version: [1, 2],
+    defaultVersion: 2,
     description: "Manage agent sessions, messages and Enterprise sharing",
     defaults: { name: "OpenAgentHub" },
     inputs: [NodeConnectionTypes.Main],
@@ -43,13 +48,52 @@ export class OpenAgentHub implements INodeType {
         name: "openAgentHubApi",
         required: true,
         testedBy: "testApiCredential",
-        displayOptions: { show: { operation: remoteOperations } },
+        displayOptions: {
+          show: { operation: remoteOperations, "@version": [1] },
+        },
+      },
+      {
+        name: "openAgentHubApi",
+        required: true,
+        testedBy: "testApiCredential",
+        displayOptions: {
+          show: {
+            operation: remoteOperations.filter(
+              (operation) => operation !== "create",
+            ),
+            "@version": [2],
+          },
+        },
+      },
+      {
+        name: "openAgentHubApi",
+        required: true,
+        testedBy: "testApiCredential",
+        displayOptions: {
+          show: {
+            operation: ["create"],
+            creationAuthentication: ["personal"],
+            "@version": [2],
+          },
+        },
       },
       {
         name: "openAgentHubEeApi",
         required: true,
         testedBy: "testApiCredential",
         displayOptions: { hide: { operation: remoteOperations } },
+      },
+      {
+        name: "openAgentHubEeApi",
+        required: true,
+        testedBy: "testApiCredential",
+        displayOptions: {
+          show: {
+            operation: ["create"],
+            creationAuthentication: ["user"],
+            "@version": [2],
+          },
+        },
       },
     ],
     properties: [
@@ -140,6 +184,83 @@ export class OpenAgentHub implements INodeType {
         ],
       },
       {
+        displayName: "AgentHub Authentication",
+        name: "creationAuthentication",
+        type: "options",
+        noDataExpression: true,
+        default: "personal",
+        options: [
+          {
+            name: "Personal API Token",
+            value: "personal",
+            description:
+              "Saved login and Git-token selection; enter repositories and catalog IDs manually",
+          },
+          {
+            name: "User Access Token",
+            value: "user",
+            description:
+              "Browse connected Git accounts, repositories, projects and MCP servers like the AgentHub UI",
+          },
+        ],
+        displayOptions: { show: { operation: ["create"], "@version": [2] } },
+      },
+      ...sessionFields,
+      {
+        displayName: "System Prompt",
+        name: "systemPrompt",
+        type: "string",
+        typeOptions: { rows: 4 },
+        default: "",
+        description:
+          "Standing instructions appended to the agent system prompt",
+        displayOptions: { show: { operation: ["create"], "@version": [2] } },
+      },
+      {
+        displayName: "Container and Resources",
+        name: "container",
+        type: "collection",
+        default: {},
+        placeholder: "Add Option",
+        options: [
+          {
+            displayName: "Auto Approve",
+            name: "autoApprove",
+            type: "boolean",
+            default: false,
+            description: "Whether to approve tool requests automatically",
+          },
+          {
+            displayName: "Container Image",
+            name: "image",
+            type: "string",
+            default: "",
+            description: "Leave empty to use the default image for the harness",
+          },
+          { displayName: "CPU", name: "cpu", type: "string", default: "500m" },
+          {
+            displayName: "Memory",
+            name: "memory",
+            type: "string",
+            default: "1Gi",
+          },
+          {
+            displayName: "Parent Session ID",
+            name: "parentSessionId",
+            type: "string",
+            default: "",
+          },
+          {
+            displayName: "Run as Root",
+            name: "runAsRoot",
+            type: "boolean",
+            default: false,
+            description: "Whether to run as root inside the session container",
+          },
+        ],
+        displayOptions: { show: { operation: ["create"], "@version": [2] } },
+      },
+      {
         displayName: "Session ID",
         name: "sessionId",
         type: "string",
@@ -154,7 +275,14 @@ export class OpenAgentHub implements INodeType {
         default: "{}",
         description:
           "Create/update request. Supports systemPrompt, credentialId (integration), repos, policy, MCP sources, projectId and parentSessionId. Use credential IDs instead of secrets.",
-        displayOptions: { show: { operation: ["create", "update"] } },
+        displayOptions: { show: { operation: ["update"] } },
+      },
+      {
+        displayName: "Session Settings (JSON)",
+        name: "settings",
+        type: "json",
+        default: "{}",
+        displayOptions: { show: { operation: ["create"], "@version": [1] } },
       },
       {
         displayName: "Message",
@@ -244,9 +372,21 @@ export class OpenAgentHub implements INodeType {
     for (let i = 0; i < this.getInputData().length; i++) {
       try {
         const op = this.getNodeParameter("operation", i) as string;
-        const credential = remoteOperations.includes(op)
-          ? "openAgentHubApi"
-          : "openAgentHubEeApi";
+        const nativeCreate = op === "create" && this.getNode().typeVersion >= 2;
+        const authentication = nativeCreate
+          ? this.getNodeParameter("creationAuthentication", i, "personal")
+          : "personal";
+        if (authentication !== "personal" && authentication !== "user")
+          throw new NodeOperationError(
+            this.getNode(),
+            "Choose a supported AgentHub authentication method",
+          );
+        const credential =
+          nativeCreate && authentication === "user"
+            ? "openAgentHubEeApi"
+            : remoteOperations.includes(op)
+              ? "openAgentHubApi"
+              : "openAgentHubEeApi";
         const prefix =
           credential === "openAgentHubApi"
             ? "/api/remote/sessions"
@@ -262,7 +402,9 @@ export class OpenAgentHub implements INodeType {
           case "create":
           case "update":
             method = op === "create" ? "POST" : "PATCH";
-            body = objectJson(this.getNodeParameter("settings", i));
+            body = nativeCreate
+              ? buildSessionPayload(this, i)
+              : objectJson(this.getNodeParameter("settings", i));
             if (op === "create")
               body = { autoApprove: false, runAsRoot: false, ...body };
             break;

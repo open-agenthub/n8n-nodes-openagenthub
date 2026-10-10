@@ -27,11 +27,12 @@ export class OpenAgentHubEeApi implements ICredentialType {
         "User JWT access token; personal oah_ tokens do not work on these routes. Refresh expired tokens manually.",
     },
     {
-      displayName: "Allow Local HTTP",
+      displayName: "Allow HTTP for Local Development",
       name: "allowLocalHttp",
       type: "boolean",
       default: false,
-      description: "Whether to allow HTTP on localhost for development",
+      description:
+        "Whether to allow unencrypted HTTP to localhost, 127.0.0.1 or ::1 only. Leave disabled for hosted AgentHub instances. In Docker, localhost refers to the n8n container.",
     },
   ];
   authenticate: IAuthenticateGeneric = {

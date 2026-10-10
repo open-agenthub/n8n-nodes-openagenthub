@@ -1,6 +1,7 @@
 import type {
   IExecuteFunctions,
   IPollFunctions,
+  ILoadOptionsFunctions,
   IDataObject,
   IHttpRequestMethods,
 } from "n8n-workflow";
@@ -52,7 +53,7 @@ export function messageBody(value: unknown): string {
   return text;
 }
 export async function request(
-  context: IExecuteFunctions | IPollFunctions,
+  context: IExecuteFunctions | IPollFunctions | ILoadOptionsFunctions,
   credential: string,
   method: IHttpRequestMethods,
   path: string,

@@ -22,20 +22,25 @@ Create an OpenAgentHub personal API token in your instance and store it in the *
 
 Session sharing, message history and the new structured conversation API use the logged-in user API, which currently requires a separate **OpenAgentHub User Access Token API** credential containing a user bearer JWT. A personal API token does not authenticate these routes. JWTs expire and must be renewed; this package does not silently exchange personal API tokens for user permissions. Sharing additionally requires an active OpenAgentHub Enterprise license.
 
-HTTPS is required except for explicitly enabled development HTTP. Self-hosted private hosts are supported: restrict credential editing and network egress in n8n to trusted administrators and hosts. Keep credentials in n8n's encrypted credential store, and treat transcripts, share links and workflow execution data as sensitive.
+HTTPS is required. **Allow HTTP for Local Development** permits unencrypted HTTP only for `localhost`, `127.0.0.1`, or `::1`. Leave it disabled for hosted instances. In Docker, localhost refers to the n8n container. Self-hosted private hosts are supported: restrict credential editing and network egress in n8n to trusted administrators and hosts. Keep credentials in n8n's encrypted credential store, and treat transcripts, share links and workflow execution data as sensitive.
 
 ## Operations
 
 | Capability | Authentication |
 |---|---|
-| Create, list, get, stop (pause), resume, delete sessions | Personal API token |
+| Create sessions | Personal API token or user access token |
+| List, get, stop (pause), resume, delete sessions | Personal API token |
 | Send message, read paginated transcript | Personal API token |
 | Read recent messages, update session | User access token |
 | Structured conversation, live provider credential switch (integration) | User access token |
 | List shares, share with user, create link, revoke user/link sharing | User access token + Enterprise license |
 | Poll incoming messages for an existing session | User access token |
 
-Creation and update use Session Settings JSON so upstream options such as repositories, projects, MCP configuration, system prompts and stored credential IDs remain available. Creation explicitly defaults `autoApprove` and `runAsRoot` to false; enabling either is an intentional workflow setting. Deletion requires its own confirmation option.
+Create Session uses native n8n fields: name, harness, login account, execution mode, prompt, Git credential access, repositories, project, MCP servers, tool permissions, container resources and expiration. Login accounts and stored GitHub/GitLab credentials load from AgentHub with either authentication method. The connected OAuth repository, project and MCP catalogs require **User Access Token** authentication; personal tokens support manually entered repositories and IDs. Git credential access can include all accounts (including future ones), selected accounts, or none. Custom MCP JSON is optional and hidden until enabled.
+
+Creation explicitly defaults `autoApprove` and `runAsRoot` to false; enabling either is an intentional workflow setting. Update Session retains its JSON input. Deletion requires its own confirmation option.
+
+Version 0.2.0 introduces node version 2. Existing workflows retain node version 1 and its Session Settings JSON. Add a new OpenAgentHub node or select the latest node version to use the native creation dialog. The icons use AgentHub’s official favicon artwork.
 
 ## Typical workflow
 
@@ -47,7 +52,7 @@ Messages are stored in the agent inbox. The running agent must call its `agent_i
 
 ## API compatibility
 
-The implementation is based on these upstream snapshots from 2026-10-10:
+Native session creation follows the current upstream `main` snapshot `08647b4`, including the merged integration work. See [CREATE-SESSION-API.md](CREATE-SESSION-API.md) for the UI/API mapping and catalog authentication boundaries. The original operations were checked against these snapshots:
 
 - `main`: `c844067fd0e36233325de8be3a8c9aed56f0d1f8`
 - `integrate/2026-10-10`: `6ab1a1af159e6a665cae33d6e39ae7616e15b058`

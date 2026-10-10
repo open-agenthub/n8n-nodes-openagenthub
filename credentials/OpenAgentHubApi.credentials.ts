@@ -27,12 +27,12 @@ export class OpenAgentHubApi implements ICredentialType {
       description: "An oah_ personal API token from OpenAgentHub",
     },
     {
-      displayName: "Allow Local HTTP",
+      displayName: "Allow HTTP for Local Development",
       name: "allowLocalHttp",
       type: "boolean",
       default: false,
       description:
-        "Whether to allow unencrypted HTTP on localhost only for development",
+        "Whether to allow unencrypted HTTP to localhost, 127.0.0.1 or ::1 only. Leave disabled for hosted AgentHub instances. In Docker, localhost refers to the n8n container.",
     },
   ];
   authenticate: IAuthenticateGeneric = {

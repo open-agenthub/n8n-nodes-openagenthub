@@ -43,3 +43,12 @@
 - CI erfolgreich: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/38050861059
 - GitHub/npm-Publish erfolgreich: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/38050923520
 - npm hat 0.1.1 angenommen und GitHub-Provenance signiert (Transparenzlog 3185505255). Damit ist der erste Publish via Trusted Publisher vor der Frist erfolgt. npm meldete anschließend eine kurze Paket-Verarbeitungszeit.
+
+## Native n8n Create-Session-Oberfläche
+
+- Originales AgentHub-Logo aus frontend/public/favicon.svg übernehmen.
+- Local-HTTP-Schalter als explizite lokale Entwicklungsoption erklären.
+- Create JSON durch native Felder analog aktuellem UI ersetzen: Name, Harness, Login-Account, Git-Auswahl, Repositories, Projekt, MCP, Policy, Ressourcen und Ablauf.
+- Dynamische Account-Auswahl mit token-scope-gefilterter Remote-API; zusätzliche UI-Kataloge nur mit Benutzer-JWT.
+- Bestehende Node-v1-Workflows weiterhin ausführbar lassen.
+- Tests, Build, CI und npm-Release des Updates prüfen.
