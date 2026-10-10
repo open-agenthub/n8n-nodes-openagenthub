@@ -36,3 +36,10 @@
 - 0.1.0 manuell auf npm veröffentlicht und Paketinhalt geprüft.
 - 0.1.1 als Patch-Release über GitHub Actions veröffentlichen, um die neu konfigurierte npm Trusted-Publisher-Verknüpfung vor Ablauf am 2026-10-12 zu validieren.
 - Version/Lockfile aktualisiert und Installationsdokumentation an veröffentlichtes Paket angepasst; Node-Verhalten unverändert.
+
+### Ergebnis am 2026-10-10
+
+- Release v0.1.1: https://github.com/open-agenthub/n8n-nodes-openagenthub/releases/tag/v0.1.1
+- CI erfolgreich: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/38050861059
+- GitHub/npm-Publish erfolgreich: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/38050923520
+- npm hat 0.1.1 angenommen und GitHub-Provenance signiert (Transparenzlog 3185505255). Damit ist der erste Publish via Trusted Publisher vor der Frist erfolgt. npm meldete anschließend eine kurze Paket-Verarbeitungszeit.
