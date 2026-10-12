@@ -83,3 +83,11 @@
 - Echter n8n-CLI-Workflow Create → Get → Delete erfolgreich; danach unabhängiger Backend-GET liefert 404. Keine Testsession zurückgelassen.
 - Reproduzierbarer tokenfreier Integrationstest in scripts/test-n8n-live.mjs, Details in TESTING.md.
 - Backend-PR94 separat vorbereitet, 57 gezielte / 1606 Gesamttests grün (128 DB-Tests ohne PostgreSQL übersprungen), GitHub-Prüfungen grün. Noch kein Backend-Merge oder Deployment; Nutzerentscheidung angefragt.
+
+### Veröffentlichung 0.2.1
+
+- Paket-PR #1 übernommen; Main-CI erfolgreich: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/38297464618
+- Release: https://github.com/open-agenthub/n8n-nodes-openagenthub/releases/tag/v0.2.1
+- GitHub Trusted Publishing mit signierter Provenance erfolgreich: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/38297735941
+- Temporäre Live-Testzugangsdaten und lokale n8n-Datenbanken entfernt; Testproxy gestoppt.
+- Backend-PR #94 bleibt bis zur Nutzerentscheidung separat; GitLab-Discovery mit PAT benötigt anschließend dessen Deployment.
