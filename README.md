@@ -71,7 +71,7 @@ For incoming agent-to-agent messages, use the message trigger on an existing ses
 
 ## Development and publishing
 
-Development uses Node 24 and n8n-workflow 2.16.0; the n8n peer dependency follows the official community-node packaging convention. Tests mock the n8n request context and cover request contracts, credential separation, input validation and polling. They do not start a live OpenAgentHub deployment. GitHub Actions runs the checks again on pushes and pull requests.
+Development uses Node 24 and n8n-workflow 2.16.0; the n8n peer dependency follows the official community-node packaging convention. 41 automated tests cover request contracts, credential separation, input validation and polling. Version 0.2.1 was additionally tested in a disposable n8n 2.16.0 instance against the live backend: real option fetching, served avatar and a create/get/delete workflow. See [TESTING.md](TESTING.md) for results and remaining backend prerequisites. GitHub Actions runs the checks again on pushes and pull requests.
 
 See [RELEASE.md](RELEASE.md) for the release process and the one-time npm Trusted Publisher setup. Publishing is tied to a GitHub release whose tag matches `package.json`; regular pushes only run CI. No npm publication is performed by installing or building this source tree.
 
