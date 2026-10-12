@@ -66,11 +66,7 @@ export function buildSessionPayload(
       "Select individual Git credential IDs; wildcard access requires the All option",
     );
   const reposValue = get("repos", {}) as { repo?: unknown[] };
-  const connected = (
-    text("creationAuthentication", "personal") === "user"
-      ? ids("connectedRepos")
-      : []
-  ).map((value) => {
+  const connected = ids("connectedRepos").map((value) => {
     try {
       return JSON.parse(value) as unknown;
     } catch {

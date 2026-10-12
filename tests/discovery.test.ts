@@ -83,7 +83,10 @@ test("personal account and Git menus use only scoped remote credential metadata"
 });
 
 test("personal catalog never calls JWT-only routes; user mode respects allowed harnesses", async () => {
-  const personal = catalog({}, {});
+  const personal = catalog(
+    {},
+    { "/api/remote/git/providers": [], "/api/remote/git/projects": [] },
+  );
   assert.ok(
     (await loadOptions.getAgents.call(personal.context)).some(
       (option) => option.value === "OpenCode",
@@ -101,7 +104,11 @@ test("personal catalog never calls JWT-only routes; user mode respects allowed h
   assert.deepEqual(await loadOptions.getProjects.call(personal.context), [
     { name: "No Project", value: "" },
   ]);
-  assert.equal(personal.calls.length, 0);
+  assert.ok(
+    personal.calls.every((call) =>
+      String(call.options.url).includes("/api/remote/git/"),
+    ),
+  );
   const user = catalog(
     { creationAuthentication: "user" },
     { "/api/agents/allowed": { agents: ["Codex"] } },
@@ -192,17 +199,19 @@ test("disconnected providers fail before searching; discovery HTTP errors do not
   );
 });
 
-test("real n8n display rules show native create controls in v2, retain v1 JSON, and require one credential", () => {
-  const node = new OpenAgentHub();
+test("real n8n display rules show native create controls in v2, retain v1 JSON, and preserve unique first-match credential descriptors", () => {
+  const versioned = new OpenAgentHub();
   const visible = (version: number, params: INodeParameters) =>
-    node.description.properties.filter((property) =>
-      NodeHelpers.displayParameter(
-        params,
-        property,
-        { typeVersion: version },
-        node.description,
-      ),
-    );
+    versioned
+      .getNodeType(version)
+      .description.properties.filter((property) =>
+        NodeHelpers.displayParameter(
+          params,
+          property,
+          { typeVersion: version },
+          versioned.getNodeType(version).description,
+        ),
+      );
   const params = {
     operation: "create",
     creationAuthentication: "personal",
@@ -219,23 +228,27 @@ test("real n8n display rules show native create controls in v2, retain v1 JSON, 
   assert.ok(!v2.some((property) => property.name === "settings"));
   assert.ok(!v2.some((property) => property.type === "json"));
   const credentials = (version: number, values: INodeParameters) =>
-    node.description.credentials
-      ?.filter((credential) =>
+    versioned
+      .getNodeType(version)
+      .description.credentials?.filter((credential) =>
         NodeHelpers.displayParameter(
           values,
           credential,
           { typeVersion: version },
-          node.description,
+          versioned.getNodeType(version).description,
         ),
       )
       .map((credential) => credential.name);
   assert.deepEqual(credentials(1, { operation: "create" }), [
     "openAgentHubApi",
   ]);
-  assert.deepEqual(credentials(2, params), ["openAgentHubApi"]);
+  assert.deepEqual(credentials(2, params), [
+    "openAgentHubApi",
+    "openAgentHubEeApi",
+  ]);
   assert.deepEqual(
     credentials(2, { ...params, creationAuthentication: "user" }),
-    ["openAgentHubEeApi"],
+    ["openAgentHubApi", "openAgentHubEeApi"],
   );
   assert.deepEqual(
     credentials(2, {
@@ -248,7 +261,39 @@ test("real n8n display rules show native create controls in v2, retain v1 JSON, 
   assert.deepEqual(credentials(2, { ...params, operation: "conversation" }), [
     "openAgentHubEeApi",
   ]);
-  assert.equal(node.description.defaultVersion, 2);
+  assert.equal(versioned.description.defaultVersion, 2);
+  for (const version of [1, 2]) {
+    const description = versioned.getNodeType(version).description;
+    const names = description.credentials!.map((credential) => credential.name);
+    assert.equal(new Set(names).size, names.length);
+    assert.ok(
+      description.credentials!.every(
+        (credential) => credential.required === (version === 1),
+      ),
+    );
+    for (const operation of ["create", "get", "list", "conversation"]) {
+      for (const authentication of ["personal", "user"]) {
+        const name =
+          (operation === "create" &&
+            version === 2 &&
+            authentication === "user") ||
+          operation === "conversation"
+            ? "openAgentHubEeApi"
+            : "openAgentHubApi";
+        const first = description.credentials!.find(
+          (credential) => credential.name === name,
+        )!;
+        assert.ok(
+          NodeHelpers.displayParameter(
+            { operation, creationAuthentication: authentication },
+            first,
+            { typeVersion: version },
+            description,
+          ),
+        );
+      }
+    }
+  }
 });
 
 async function executeNative(authentication: string) {
@@ -270,7 +315,26 @@ async function executeNative(authentication: string) {
     getInputData: () => [{ json: {} }],
     getNodeParameter: (name: string, _index: number, fallback: unknown) =>
       params[name] ?? fallback,
-    getCredentials: async () => ({ baseUrl: "https://agenthub.example" }),
+    getCredentials: async (name: string) => {
+      const description = new OpenAgentHub().getNodeType(2).description;
+      const credential = description.credentials!.find(
+        (item) => item.name === name,
+      );
+      assert.ok(
+        credential,
+        "n8n resolves credentials by the first matching name",
+      );
+      assert.ok(
+        NodeHelpers.displayParameter(
+          params,
+          credential,
+          { typeVersion: 2 },
+          description,
+        ),
+        "n8n rejects hidden credentials before making requests",
+      );
+      return { baseUrl: "https://agenthub.example" };
+    },
     continueOnFail: () => false,
     helpers: {
       httpRequestWithAuthentication: async (
@@ -282,7 +346,7 @@ async function executeNative(authentication: string) {
       },
     },
   } as unknown as IExecuteFunctions;
-  const output = await new OpenAgentHub().execute.call(context);
+  const output = await new OpenAgentHub().getNodeType(2).execute!.call(context);
   return { output, calls };
 }
 

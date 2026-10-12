@@ -60,3 +60,10 @@
 - Kein Live-Test gegen laufende AgentHub-/n8n-Instanzen.
 - GitHub CI erfolgreich: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/38054828169
 - Release v0.2.0 erstellt; npm-Publish über Trusted Publisher erfolgreich: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/38054902220
+
+## Live-Fehlerbehebung nach 0.2.0
+
+- Credential-Auflösung: n8n prüft nur den ersten Eintrag pro Typ; Versionierung korrigieren und real testen.
+- Angegebenes GitHub-Avatar als PNG übernehmen; Hilfetexte ergänzen.
+- GitLab-Kataloge für PAT benötigen sichere Backend-Remote-Routen; eingeschränkte Tokens bleiben ausgeschlossen.
+- Lokale n8n-Instanz aufsetzen und Session-Erstellung testen; temporäre Ressourcen aufräumen.

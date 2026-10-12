@@ -124,7 +124,7 @@ async function execute(
       },
     },
   } as unknown as IExecuteFunctions;
-  const output = await new OpenAgentHub().execute.call(context);
+  const output = await new OpenAgentHub().getNodeType(1).execute!.call(context);
   return { calls, output };
 }
 test("create applies safe permission defaults and preserves integration settings", async () => {

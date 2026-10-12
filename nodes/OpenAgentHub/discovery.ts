@@ -44,6 +44,45 @@ async function userCatalog(
   return rows(await request(context, "openAgentHubEeApi", "GET", path));
 }
 
+async function gitCatalog(
+  context: ILoadOptionsFunctions,
+  endpoint: string,
+  qs?: IDataObject,
+): Promise<IDataObject[]> {
+  const credential = creationCredential(context);
+  const prefix =
+    credential === "openAgentHubApi" ? "/api/remote/git/" : "/api/git/";
+  try {
+    return rows(
+      await request(
+        context,
+        credential,
+        "GET",
+        prefix + endpoint,
+        undefined,
+        qs,
+      ),
+    );
+  } catch (error) {
+    if (
+      credential === "openAgentHubApi" &&
+      error instanceof Error &&
+      error.message.includes("HTTP 404")
+    )
+      throw new Error(
+        "This AgentHub server does not support Git discovery with personal API tokens yet. Update AgentHub to a version providing /api/remote/git/providers, or use User Access Token authentication.",
+      );
+    if (
+      credential === "openAgentHubApi" &&
+      error instanceof Error &&
+      error.message.includes("HTTP 403")
+    )
+      throw new Error(
+        "This personal API token cannot browse connected Git accounts. Restricted tokens do not grant OAuth repository access; use an unrestricted personal token or User Access Token authentication.",
+      );
+    throw error;
+  }
+}
 export const loadOptions = {
   async getAgents(
     this: ILoadOptionsFunctions,
@@ -162,7 +201,7 @@ export const loadOptions = {
     this: ILoadOptionsFunctions,
   ): Promise<INodePropertyOptions[]> {
     return sort(
-      (await userCatalog(this, "/api/git/providers"))
+      (await gitCatalog(this, "providers"))
         .filter((provider) => provider.connected === true && text(provider.id))
         .map((provider) => ({
           name: `${text(provider.displayName) || text(provider.id)}${text(provider.username) ? ` — ${text(provider.username)}` : ""}`,
@@ -174,7 +213,6 @@ export const loadOptions = {
   async getRepositories(
     this: ILoadOptionsFunctions,
   ): Promise<INodePropertyOptions[]> {
-    if (creationCredential(this) !== "openAgentHubEeApi") return [];
     const selected = this.getNodeParameter("repositoryProviders", []);
     if (
       !Array.isArray(selected) ||
@@ -183,7 +221,7 @@ export const loadOptions = {
       throw new Error(
         "Choose connected Git accounts before loading repositories",
       );
-    const connected = await userCatalog(this, "/api/git/providers");
+    const connected = await gitCatalog(this, "providers");
     const allowed = new Set(
       connected
         .filter((provider) => provider.connected === true)
@@ -196,16 +234,10 @@ export const loadOptions = {
     const options: INodePropertyOptions[] = [];
     // Use only AgentHub's repository API. Never attach an AgentHub token to clone URLs.
     for (const provider of providers) {
-      const repositories = rows(
-        await request(
-          this,
-          "openAgentHubEeApi",
-          "GET",
-          "/api/git/projects",
-          undefined,
-          { provider, q: query },
-        ),
-      );
+      const repositories = await gitCatalog(this, "projects", {
+        provider,
+        q: query,
+      });
       for (const repo of repositories) {
         if (!text(repo.url)) continue;
         options.push({
