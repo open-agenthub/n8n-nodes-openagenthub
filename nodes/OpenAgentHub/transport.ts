@@ -81,17 +81,31 @@ export async function request(
     );
   } catch (error) {
     // n8n request errors can contain request headers and response bodies. Do not propagate them.
-    const status =
-      (error as { statusCode?: number; response?: { status?: number } })
-        .statusCode ??
-      (error as { response?: { status?: number } }).response?.status;
-    const safeStatus =
-      typeof status === "number" &&
-      Number.isInteger(status) &&
-      status >= 100 &&
-      status <= 599
-        ? status
-        : undefined;
+    const details = error as {
+      statusCode?: unknown;
+      httpCode?: unknown;
+      response?: { status?: unknown; statusCode?: unknown };
+    };
+    const safeStatus = [
+      details?.statusCode,
+      details?.httpCode,
+      details?.response?.status,
+      details?.response?.statusCode,
+    ]
+      .map((value) =>
+        typeof value === "number"
+          ? value
+          : typeof value === "string" && /^\d{3}$/.test(value)
+            ? Number(value)
+            : undefined,
+      )
+      .find(
+        (value) =>
+          value !== undefined &&
+          Number.isInteger(value) &&
+          value >= 100 &&
+          value <= 599,
+      );
     throw new Error(
       `OpenAgentHub request failed${safeStatus ? ` (HTTP ${safeStatus})` : ""}. Check credentials, permissions and server availability.`,
     );

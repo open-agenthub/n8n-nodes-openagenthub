@@ -5,6 +5,34 @@ const dynamic = (method: string, depends: string[] = []) => ({
   loadOptionsMethod: method,
   loadOptionsDependsOn: ["creationAuthentication", ...depends],
 });
+const help: Record<string, string> = {
+  title: "Name displayed in AgentHub; use a meaningful workflow or task name",
+  description: "Optional summary shown with the session",
+  mode: "Interactive starts a session you can message. Autonomous runs the initial prompt. Scheduled runs the prompt using the cron schedule.",
+  authMode:
+    "Subscription uses a saved harness login account. API Key uses API keys already stored in AgentHub.",
+  schedule:
+    "Five-part cron expression in UTC, for example 0 6 * * 1-5 for weekdays at 06:00",
+  repositoryProviders:
+    "Choose connected GitHub/GitLab OAuth accounts before loading repositories. Choose from the list, or specify IDs using an expression. Personal tokens require AgentHub remote Git discovery support and unrestricted OAuth access.",
+  repositorySearch:
+    "Search repository names in the selected connected Git accounts; change this field to reload the list",
+  connectedRepos:
+    "Choose from the list, or specify IDs using an expression. First select connected Git accounts. Selected repositories include their provider and default branch.",
+  repos:
+    "Manually add clone URLs, for example https://gitlab.example.com/group/project.git. Use the connected repository picker above to browse linked accounts.",
+  projectId:
+    "Optional AgentHub project grouping, separate from GitLab repositories. Choose from the list, or specify an ID using an expression.",
+  autoDeleteEnabled:
+    "Whether AgentHub should automatically delete the session after the configured interval",
+  accountFailover:
+    "Automatic switches to another permitted login when an account reaches its limit. Off keeps the chosen account.",
+  customMcpEnabled:
+    "Whether to provide advanced MCP configuration; saved MCP server selections do not require JSON",
+  ephemeralName: "Optional name for tools generated from the API specification",
+  ephemeralSaveToLibrary:
+    "Whether to save the API source in your AgentHub library for reuse",
+};
 export const sessionFields: INodeProperties[] = [
   {
     displayName: "Session Name",
@@ -125,7 +153,6 @@ export const sessionFields: INodeProperties[] = [
     typeOptions: dynamic("getGitProviders"),
     description:
       'Choose connected GitHub or GitLab accounts to browse. Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
-    displayOptions: { show: { creationAuthentication: ["user"] } },
   },
   {
     displayName: "Repository Search",
@@ -133,7 +160,6 @@ export const sessionFields: INodeProperties[] = [
     type: "string",
     default: "",
     description: "Filter repositories in the selected connected Git accounts",
-    displayOptions: { show: { creationAuthentication: ["user"] } },
   },
   {
     displayName: "Connected Repository Names or IDs",
@@ -146,7 +172,6 @@ export const sessionFields: INodeProperties[] = [
     default: [],
     description:
       "Choose from the list, or specify IDs using an expression. Includes the connected GitHub or GitLab provider for authentication.",
-    displayOptions: { show: { creationAuthentication: ["user"] } },
   },
   {
     displayName: "Repositories",
@@ -370,5 +395,6 @@ export const sessionFields: INodeProperties[] = [
   },
 ].map((field) => ({
   ...field,
+  description: help[field.name] ?? field.description,
   displayOptions: { show: { ...show, ...field.displayOptions?.show } },
 })) as INodeProperties[];

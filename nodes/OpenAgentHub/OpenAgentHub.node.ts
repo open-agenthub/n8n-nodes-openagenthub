@@ -1,4 +1,8 @@
-import { NodeOperationError, NodeConnectionTypes } from "n8n-workflow";
+import {
+  NodeOperationError,
+  NodeConnectionTypes,
+  VersionedNodeType,
+} from "n8n-workflow";
 import type {
   IDataObject,
   IExecuteFunctions,
@@ -28,16 +32,39 @@ const remoteOperations = [
   "sendMessage",
   "transcript",
 ];
-export class OpenAgentHub implements INodeType {
+class OpenAgentHubVersion implements INodeType {
+  constructor(version: 1 | 2) {
+    this.description = {
+      ...this.description,
+      version,
+      credentials:
+        version === 1
+          ? [
+              {
+                name: "openAgentHubApi",
+                required: true,
+                testedBy: "testApiCredential",
+                displayOptions: { show: { operation: remoteOperations } },
+              },
+              {
+                name: "openAgentHubEeApi",
+                required: true,
+                testedBy: "testApiCredential",
+                displayOptions: { hide: { operation: remoteOperations } },
+              },
+            ]
+          : this.description.credentials,
+    };
+  }
   methods = { credentialTest: { testApiCredential }, loadOptions };
   description: INodeTypeDescription = {
     usableAsTool: true,
-    icon: { light: "file:openagenthub.svg", dark: "file:openagenthub.svg" },
+    icon: { light: "file:openagenthub.png", dark: "file:openagenthub.png" },
     subtitle: "OpenAgentHub sessions and messages",
     displayName: "OpenAgentHub",
     name: "openAgentHub",
     group: ["transform"],
-    version: [1, 2],
+    version: 2,
     defaultVersion: 2,
     description: "Manage agent sessions, messages and Enterprise sharing",
     defaults: { name: "OpenAgentHub" },
@@ -46,52 +73,28 @@ export class OpenAgentHub implements INodeType {
     credentials: [
       {
         name: "openAgentHubApi",
-        required: true,
+        required: false,
         testedBy: "testApiCredential",
-        displayOptions: {
-          show: { operation: remoteOperations, "@version": [1] },
-        },
-      },
-      {
-        name: "openAgentHubApi",
-        required: true,
-        testedBy: "testApiCredential",
-        displayOptions: {
-          show: {
-            operation: remoteOperations.filter(
-              (operation) => operation !== "create",
-            ),
-            "@version": [2],
-          },
-        },
-      },
-      {
-        name: "openAgentHubApi",
-        required: true,
-        testedBy: "testApiCredential",
-        displayOptions: {
-          show: {
-            operation: ["create"],
-            creationAuthentication: ["personal"],
-            "@version": [2],
-          },
-        },
+        displayOptions: { show: { operation: remoteOperations } },
       },
       {
         name: "openAgentHubEeApi",
-        required: true,
-        testedBy: "testApiCredential",
-        displayOptions: { hide: { operation: remoteOperations } },
-      },
-      {
-        name: "openAgentHubEeApi",
-        required: true,
+        required: false,
         testedBy: "testApiCredential",
         displayOptions: {
           show: {
-            operation: ["create"],
-            creationAuthentication: ["user"],
-            "@version": [2],
+            operation: [
+              "create",
+              "conversation",
+              "messages",
+              "update",
+              "switchCredential",
+              "shares",
+              "shareUser",
+              "shareLink",
+              "revokeUser",
+              "revokeLink",
+            ],
           },
         },
       },
@@ -205,6 +208,14 @@ export class OpenAgentHub implements INodeType {
         ],
         displayOptions: { show: { operation: ["create"], "@version": [2] } },
       },
+      {
+        displayName:
+          "For creation, configure only the credential selected by AgentHub Authentication. Other operations use the credential for their API. A missing selected credential is reported when the node runs.",
+        name: "creationCredentialsNotice",
+        type: "notice",
+        default: "",
+        displayOptions: { show: { operation: ["create"], "@version": [2] } },
+      },
       ...sessionFields,
       {
         displayName: "System Prompt",
@@ -237,18 +248,28 @@ export class OpenAgentHub implements INodeType {
             default: "",
             description: "Leave empty to use the default image for the harness",
           },
-          { displayName: "CPU", name: "cpu", type: "string", default: "500m" },
+          {
+            displayName: "CPU",
+            name: "cpu",
+            type: "string",
+            default: "500m",
+            description:
+              "Kubernetes CPU quantity: 500m is half a CPU core, 1 is one core",
+          },
           {
             displayName: "Memory",
             name: "memory",
             type: "string",
             default: "1Gi",
+            description: "Kubernetes memory quantity, for example 512Mi or 2Gi",
           },
           {
             displayName: "Parent Session ID",
             name: "parentSessionId",
             type: "string",
             default: "",
+            description:
+              "Optional existing parent session; leave empty for an independent session",
           },
           {
             displayName: "Run as Root",
@@ -537,5 +558,23 @@ export class OpenAgentHub implements INodeType {
       }
     }
     return [output];
+  }
+}
+
+export class OpenAgentHub extends VersionedNodeType {
+  constructor() {
+    const versions = {
+      1: new OpenAgentHubVersion(1),
+      2: new OpenAgentHubVersion(2),
+    };
+    const description = versions[2].description;
+    super(versions, {
+      displayName: description.displayName,
+      name: description.name,
+      group: description.group,
+      description: description.description,
+      icon: description.icon,
+      defaultVersion: 2,
+    });
   }
 }

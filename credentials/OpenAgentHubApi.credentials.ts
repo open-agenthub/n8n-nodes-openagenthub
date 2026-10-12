@@ -6,7 +6,7 @@ import type {
 export class OpenAgentHubApi implements ICredentialType {
   name = "openAgentHubApi";
   displayName = "OpenAgentHub Personal API";
-  icon = "file:openagenthub.svg" as const;
+  icon = "file:openagenthub.png" as const;
   documentationUrl = "https://github.com/open-agenthub/open-agenthub";
   properties: INodeProperties[] = [
     {

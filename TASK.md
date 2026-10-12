@@ -60,3 +60,26 @@
 - Kein Live-Test gegen laufende AgentHub-/n8n-Instanzen.
 - GitHub CI erfolgreich: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/38054828169
 - Release v0.2.0 erstellt; npm-Publish über Trusted Publisher erfolgreich: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/38054902220
+
+## Live-Fehlerbehebung nach 0.2.0
+
+- Credential-Auflösung: n8n prüft nur den ersten Eintrag pro Typ; Versionierung korrigieren und real testen.
+- Angegebenes GitHub-Avatar als PNG übernehmen; Hilfetexte ergänzen.
+- GitLab-Kataloge für PAT benötigen sichere Backend-Remote-Routen; eingeschränkte Tokens bleiben ausgeschlossen.
+- Lokale n8n-Instanz aufsetzen und Session-Erstellung testen; temporäre Ressourcen aufräumen.
+
+### Prüfstand 2026-10-12 / 0.2.1
+
+- 39 Tests, Typecheck, Lint ohne Fehler, Build und Paketvorschau erfolgreich; Produktionsaudit 0 Befunde.
+- Live gegen dasselbe Backend via lokalem Testproxy (öffentliche Adresse im Pod nicht erreichbar): temporäre Codex-Session erfolgreich erstellt, abgerufen und gelöscht.
+- Backend meldet remote Git discovery noch 404; gesonderte Backend-Erweiterung vorbereitet.
+- Echter n8n-Instanztest läuft noch; Paket nicht vorzeitig als dort verifiziert markiert.
+
+### Endgültiger Teststand 0.2.1
+
+- 41 Tests grün; realen n8n-HTTP-Statuscode als String zusätzlich abgesichert.
+- Echte n8n-2.16.0-Instanz: Harness-, Login- und Git-Credential-Optionslisten erfolgreich geladen; Upgradehinweis für fehlende Remote-Git-API korrekt angezeigt.
+- n8n liefert tatsächlich exakt die Bytes des vom Benutzer verlinkten GitHub-Avatars aus.
+- Echter n8n-CLI-Workflow Create → Get → Delete erfolgreich; danach unabhängiger Backend-GET liefert 404. Keine Testsession zurückgelassen.
+- Reproduzierbarer tokenfreier Integrationstest in scripts/test-n8n-live.mjs, Details in TESTING.md.
+- Backend-PR94 separat vorbereitet, 57 gezielte / 1606 Gesamttests grün (128 DB-Tests ohne PostgreSQL übersprungen), GitHub-Prüfungen grün. Noch kein Backend-Merge oder Deployment; Nutzerentscheidung angefragt.

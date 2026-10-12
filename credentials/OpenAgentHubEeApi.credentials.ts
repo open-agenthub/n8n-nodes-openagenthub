@@ -6,7 +6,7 @@ import type {
 export class OpenAgentHubEeApi implements ICredentialType {
   name = "openAgentHubEeApi";
   displayName = "OpenAgentHub User Access Token API";
-  icon = "file:openagenthub.svg" as const;
+  icon = "file:openagenthub.png" as const;
   documentationUrl = "https://github.com/open-agenthub/open-agenthub";
   properties: INodeProperties[] = [
     {

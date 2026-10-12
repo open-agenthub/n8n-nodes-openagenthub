@@ -204,15 +204,7 @@ test("container collection maps resources and explicit execution permissions", (
   assert.equal(payload.autoApprove, true);
   assert.equal(payload.parentSessionId, "parent");
 });
-test("personal auth ignores stale connected repository choices", () => {
-  assert.deepEqual(
-    build({
-      creationAuthentication: "personal",
-      connectedRepos: ["invalid stale choice"],
-    }).repos,
-    [],
-  );
-});
+
 test("default policy follows harness defaults and custom empty grants no permissions", () => {
   for (const [agent, allowedTools, allowedCommands] of [
     ["Claude", ["Edit", "Bash(git*)", "Read"], []],

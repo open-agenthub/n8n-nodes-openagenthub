@@ -35,7 +35,7 @@ export function selectMessages(
 export class OpenAgentHubTrigger implements INodeType {
   methods = { credentialTest: { testApiCredential } };
   description: INodeTypeDescription = {
-    icon: { light: "file:openagenthub.svg", dark: "file:openagenthub.svg" },
+    icon: { light: "file:openagenthub.png", dark: "file:openagenthub.png" },
     subtitle: "OpenAgentHub sessions and messages",
     displayName: "OpenAgentHub Trigger",
     name: "openAgentHubTrigger",

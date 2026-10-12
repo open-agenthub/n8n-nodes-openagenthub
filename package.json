@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-openagenthub",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "n8n community nodes for OpenAgentHub sessions and agent messaging",
   "license": "MIT",
   "author": {

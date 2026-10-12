@@ -72,3 +72,9 @@ With a PAT credential, use the static known harness catalog and let the server e
 ## Main versus integration
 
 Main contains the newer PAT selection, scoped remote credential listing, auto-deletion, account exhaustion/failover and mode-conversion features beyond the named integration branch. Main's create dialog adds Git PAT picker and auto-delete controls. Use main as the canonical create contract rather than dropping those features to match the older integration branch.
+
+## Personal-token Git discovery extension
+
+The node also supports `GET /api/remote/git/providers` and `GET /api/remote/git/projects?provider=ID&q=TEXT`. These routes need an AgentHub backend containing the separate RemoteGitController change. They resolve the owner from the personal token and reuse the owner's connected Git service. Restricted tokens fail closed with 403 because current token scopes cannot grant OAuth connection access. Missing routes (404) produce an explicit upgrade/user-authentication hint in n8n. The existing `/api/git/*` routes continue to require a user token.
+
+Git PAT access and Git OAuth repository discovery are separate: the former selects credentials made available in a session; the latter browses repositories and retains the selected `providerId` in `repos`. n8n never fetches clone URLs with AgentHub credentials.
