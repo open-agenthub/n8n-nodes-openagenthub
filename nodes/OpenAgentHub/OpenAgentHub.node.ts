@@ -248,18 +248,28 @@ class OpenAgentHubVersion implements INodeType {
             default: "",
             description: "Leave empty to use the default image for the harness",
           },
-          { displayName: "CPU", name: "cpu", type: "string", default: "500m" },
+          {
+            displayName: "CPU",
+            name: "cpu",
+            type: "string",
+            default: "500m",
+            description:
+              "Kubernetes CPU quantity: 500m is half a CPU core, 1 is one core",
+          },
           {
             displayName: "Memory",
             name: "memory",
             type: "string",
             default: "1Gi",
+            description: "Kubernetes memory quantity, for example 512Mi or 2Gi",
           },
           {
             displayName: "Parent Session ID",
             name: "parentSessionId",
             type: "string",
             default: "",
+            description:
+              "Optional existing parent session; leave empty for an independent session",
           },
           {
             displayName: "Run as Root",
