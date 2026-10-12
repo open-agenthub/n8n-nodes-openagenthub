@@ -53,35 +53,7 @@ class OpenAgentHubVersion implements INodeType {
                 displayOptions: { hide: { operation: remoteOperations } },
               },
             ]
-          : [
-              {
-                name: "openAgentHubApi",
-                required: false,
-                testedBy: "testApiCredential",
-                displayOptions: { show: { operation: remoteOperations } },
-              },
-              {
-                name: "openAgentHubEeApi",
-                required: false,
-                testedBy: "testApiCredential",
-                displayOptions: {
-                  show: {
-                    operation: [
-                      "create",
-                      "conversation",
-                      "messages",
-                      "update",
-                      "switchCredential",
-                      "shares",
-                      "shareUser",
-                      "shareLink",
-                      "revokeUser",
-                      "revokeLink",
-                    ],
-                  },
-                },
-              },
-            ],
+          : this.description.credentials,
     };
   }
   methods = { credentialTest: { testApiCredential }, loadOptions };
@@ -98,7 +70,35 @@ class OpenAgentHubVersion implements INodeType {
     defaults: { name: "OpenAgentHub" },
     inputs: [NodeConnectionTypes.Main],
     outputs: [NodeConnectionTypes.Main],
-    credentials: [],
+    credentials: [
+      {
+        name: "openAgentHubApi",
+        required: false,
+        testedBy: "testApiCredential",
+        displayOptions: { show: { operation: remoteOperations } },
+      },
+      {
+        name: "openAgentHubEeApi",
+        required: false,
+        testedBy: "testApiCredential",
+        displayOptions: {
+          show: {
+            operation: [
+              "create",
+              "conversation",
+              "messages",
+              "update",
+              "switchCredential",
+              "shares",
+              "shareUser",
+              "shareLink",
+              "revokeUser",
+              "revokeLink",
+            ],
+          },
+        },
+      },
+    ],
     properties: [
       {
         displayName: "Operation",

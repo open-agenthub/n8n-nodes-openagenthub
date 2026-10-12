@@ -36,11 +36,15 @@ HTTPS is required. **Allow HTTP for Local Development** permits unencrypted HTTP
 | List shares, share with user, create link, revoke user/link sharing | User access token + Enterprise license |
 | Poll incoming messages for an existing session | User access token |
 
-Create Session uses native n8n fields: name, harness, login account, execution mode, prompt, Git credential access, repositories, project, MCP servers, tool permissions, container resources and expiration. Login accounts and stored GitHub/GitLab credentials load from AgentHub with either authentication method. The connected OAuth repository, project and MCP catalogs require **User Access Token** authentication; personal tokens support manually entered repositories and IDs. Git credential access can include all accounts (including future ones), selected accounts, or none. Custom MCP JSON is optional and hidden until enabled.
+Create Session uses native n8n fields: name, harness, login account, execution mode, prompt, Git credential access, repositories, project, MCP servers, tool permissions, container resources and expiration. Login accounts and stored GitHub/GitLab credentials load from AgentHub with either authentication method. Connected OAuth repositories can also be browsed with an unrestricted personal token when AgentHub provides `/api/remote/git/providers` and `/api/remote/git/projects`. Older AgentHub servers require **User Access Token** authentication for this picker. Restricted personal tokens cannot browse OAuth connections. Project and MCP catalogs still require a user token; personal tokens support manual IDs. Git credential access can include all accounts (including future ones), selected accounts, or none. Custom MCP JSON is optional and hidden until enabled.
 
 Creation explicitly defaults `autoApprove` and `runAsRoot` to false; enabling either is an intentional workflow setting. Update Session retains its JSON input. Deletion requires its own confirmation option.
 
-Version 0.2.0 introduces node version 2. Existing workflows retain node version 1 and its Session Settings JSON. Add a new OpenAgentHub node or select the latest node version to use the native creation dialog. The icons use AgentHub’s official favicon artwork.
+Version 0.2.0 introduces node version 2. Existing workflows retain node version 1 and its Session Settings JSON. Add a new OpenAgentHub node or select the latest node version to use the native creation dialog. The icons use the GitHub avatar artwork explicitly supplied by the AgentHub maintainer.
+
+Version 0.2.1 fixes n8n credential lookup for option menus and execution. In the creation dialog both credential selectors are optional in n8n’s form; fill the one selected under **AgentHub Authentication**. You can reuse existing saved credentials.
+
+To browse GitLab or GitHub repositories, select **Connected Git Accounts**, optionally enter **Repository Search**, then load **Connected Repositories**. Stored Git personal access tokens and connected OAuth accounts are separate lists; **Git Credential Access** controls the tokens placed inside a session, while the connected repository selection supplies its OAuth provider.
 
 ## Typical workflow
 

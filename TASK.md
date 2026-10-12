@@ -67,3 +67,10 @@
 - Angegebenes GitHub-Avatar als PNG übernehmen; Hilfetexte ergänzen.
 - GitLab-Kataloge für PAT benötigen sichere Backend-Remote-Routen; eingeschränkte Tokens bleiben ausgeschlossen.
 - Lokale n8n-Instanz aufsetzen und Session-Erstellung testen; temporäre Ressourcen aufräumen.
+
+### Prüfstand 2026-10-12 / 0.2.1
+
+- 39 Tests, Typecheck, Lint ohne Fehler, Build und Paketvorschau erfolgreich; Produktionsaudit 0 Befunde.
+- Live gegen dasselbe Backend via lokalem Testproxy (öffentliche Adresse im Pod nicht erreichbar): temporäre Codex-Session erfolgreich erstellt, abgerufen und gelöscht.
+- Backend meldet remote Git discovery noch 404; gesonderte Backend-Erweiterung vorbereitet.
+- Echter n8n-Instanztest läuft noch; Paket nicht vorzeitig als dort verifiziert markiert.

@@ -12,6 +12,7 @@ test("personal Git discovery uses remote routes and preserves provider identity 
     repositorySearch: "demo",
   };
   const context = {
+    getNode: () => ({ name: "OpenAgentHub", typeVersion: 2 }),
     getNodeParameter: (name: string, fallback: unknown) =>
       params[name] ?? fallback,
     getCredentials: async () => ({ baseUrl: "https://hub.example" }),
@@ -73,6 +74,7 @@ for (const [status, message] of [
 ] as const) {
   test(`PAT Git discovery explains HTTP ${status} without disclosing secrets`, async () => {
     const context = {
+      getNode: () => ({ name: "OpenAgentHub", typeVersion: 2 }),
       getNodeParameter: (_name: string, fallback: unknown) => fallback,
       getCredentials: async () => ({ baseUrl: "https://hub.example" }),
       helpers: {
@@ -92,3 +94,37 @@ for (const [status, message] of [
     );
   });
 }
+
+test("catalogs use current editor parameters when saved node values are stale", async () => {
+  const context = {
+    getNodeParameter: () => "personal",
+    getCurrentNodeParameter: (name: string) =>
+      name === "creationAuthentication"
+        ? "user"
+        : name === "agent"
+          ? "Codex"
+          : undefined,
+    getCredentials: async () => ({ baseUrl: "https://hub.example" }),
+    helpers: {
+      httpRequestWithAuthentication: async (
+        credential: string,
+        options: { url: string },
+      ) => {
+        assert.equal(credential, "openAgentHubEeApi");
+        assert.equal(
+          options.url,
+          "https://hub.example/api/credentials/accounts",
+        );
+        return {
+          Codex: [{ id: "current", label: "Current account" }],
+          Claude: [{ id: "stale" }],
+        };
+      },
+    },
+  } as unknown as ILoadOptionsFunctions;
+  const options = await loadOptions.getProviderAccounts.call(context);
+  assert.deepEqual(
+    options.map((option) => option.value),
+    ["", "current"],
+  );
+});
