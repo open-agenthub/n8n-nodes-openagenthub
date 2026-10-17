@@ -100,3 +100,7 @@
 - Sharing mit bestätigten PAT-Remote-Routen anbieten; JWT-only Conversation/Messages nicht in v3 anbieten; Legacy-JWT-Trigger klar markieren. Fehlende sichere PAT-Endpunkte an AgentHub-Koordinator übergeben, Entscheidung/Backend-Arbeit dort.
 - Manuelle Projekt-/MCP-IDs bleiben native Felder; verbundene Git-Kataloge über PAT-Remote-API.
 - Version 0.3.0; Regressionstests prüfen Standard-Credentials, alte Versionen, native Erstellung trotz versteckter alter JWT-Auswahl sowie Update/Account-Wechsel über PAT.
+- Abschließend 44 Tests erfolgreich; Typecheck, Lint (0 Fehler), Build und Produktionsaudit (0 Befunde) erfolgreich. Kein neuer Live-Instanztest für diese Version.
+- Paket-PR #2 übernommen; Main-CI grün: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/39043835689
+- Release v0.3.0 über GitHub erfolgreich veröffentlicht: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/39043902018
+- Backend-Koordinator bestätigt Sharing-PAT-Routen; weitere Kataloge und Nachrichtenabruf werden in #130 durch remote-api-parity bearbeitet, API-Vertrag direkt abgestimmt.
