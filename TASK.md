@@ -97,6 +97,6 @@
 - Nutzerkorrektur: OIDC-Tokens sind kein nutzbarer Login-Weg; AgentHub-API-Token verwenden.
 - Neue Standard-Nodeversion 3: einziges erforderliches Credential OpenAgentHub Personal API; keine Authentifizierungs-Auswahl. Bestehende v1/v2 bleiben kompatibel.
 - Create/Listen/Abrufen/Steuern/Senden/Transkript sowie Update und Account-Wechsel nutzen PAT-Remote-Routen.
-- JWT-only Sharing/Conversation/Messages nicht in v3 anbieten; Legacy-JWT-Trigger klar markieren. Fehlende sichere PAT-Endpunkte an AgentHub-Koordinator übergeben, Entscheidung/Backend-Arbeit dort.
+- Sharing mit bestätigten PAT-Remote-Routen anbieten; JWT-only Conversation/Messages nicht in v3 anbieten; Legacy-JWT-Trigger klar markieren. Fehlende sichere PAT-Endpunkte an AgentHub-Koordinator übergeben, Entscheidung/Backend-Arbeit dort.
 - Manuelle Projekt-/MCP-IDs bleiben native Felder; verbundene Git-Kataloge über PAT-Remote-API.
 - Version 0.3.0; Regressionstests prüfen Standard-Credentials, alte Versionen, native Erstellung trotz versteckter alter JWT-Auswahl sowie Update/Account-Wechsel über PAT.

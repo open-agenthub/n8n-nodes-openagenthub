@@ -334,12 +334,13 @@ test("default v3 requires only an AgentHub API token and hides OIDC controls", (
   assert.ok(!description.properties.some((p) => p.name === "creationAuthentication"));
   const options = description.properties.find((p) => p.name === "operation")!.options!;
   assert.ok(options.some((o) => "value" in o && o.value === "switchCredential"));
-  assert.ok(!options.some((o) => "value" in o && o.value === "shareLink"));
+  assert.ok(options.some((o) => "value" in o && o.value === "shareLink"));
+  assert.ok(!options.some((o) => "value" in o && o.value === "messages"));
   assert.ok(description.properties.some((p) => p.name === "manualMcpServers"));
 });
 
 test("v3 updates and account switching use PAT remote routes despite stale user auth", async () => {
-  for (const operation of ["update", "switchCredential"]) {
+  for (const operation of ["update", "switchCredential", "shares"]) {
     const calls: Array<{ credential: string; url: string }> = [];
     const context = {
       getInputData: () => [{ json: {} }],
@@ -351,6 +352,6 @@ test("v3 updates and account switching use PAT remote routes despite stale user 
     } as unknown as IExecuteFunctions;
     await new OpenAgentHub().getNodeType(3).execute!.call(context);
     assert.equal(calls[0].credential, "openAgentHubApi");
-    assert.equal(calls[0].url, `https://example.com/api/remote/sessions/session${operation === "switchCredential" ? "/credential" : ""}`);
+    assert.equal(calls[0].url, `https://example.com/api/remote/sessions/session${operation === "switchCredential" ? "/credential" : operation === "shares" ? "/shares" : ""}`);
   }
 });

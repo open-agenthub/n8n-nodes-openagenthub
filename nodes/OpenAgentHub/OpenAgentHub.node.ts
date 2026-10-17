@@ -32,6 +32,7 @@ const remoteOperations = [
   "sendMessage",
   "transcript",
 ];
+const tokenOperations = [...remoteOperations, "update", "switchCredential", "shares", "shareUser", "shareLink", "revokeUser", "revokeLink"];
 class OpenAgentHubVersion implements INodeType {
   constructor(version: 1 | 2 | 3) {
     this.description = {
@@ -64,7 +65,7 @@ class OpenAgentHubVersion implements INodeType {
         return copy;
       });
       const operation = this.description.properties.find((property) => property.name === "operation")!;
-      operation.options = operation.options?.filter((option) => "value" in option && [...remoteOperations, "update", "switchCredential"].includes(String(option.value)));
+      operation.options = operation.options?.filter((option) => "value" in option && tokenOperations.includes(String(option.value)));
     }
   }
   methods = { credentialTest: { testApiCredential }, loadOptions };
@@ -422,7 +423,7 @@ class OpenAgentHubVersion implements INodeType {
             : remoteOperations.includes(op)
               ? "openAgentHubApi"
               : "openAgentHubEeApi";
-        if (tokenOnly && ![...remoteOperations, "update", "switchCredential"].includes(op))
+        if (tokenOnly && !tokenOperations.includes(op))
           throw new NodeOperationError(this.getNode(), "This operation requires a personal-token backend endpoint that is not available yet.");
         const prefix =
           credential === "openAgentHubApi"
@@ -498,7 +499,7 @@ class OpenAgentHubVersion implements INodeType {
           case "shareLink":
           case "revokeUser":
           case "revokeLink":
-            path = `/api/ee/sessions/${id}/shares`;
+            path = tokenOnly ? `/api/remote/sessions/${id}/shares` : `/api/ee/sessions/${id}/shares`;
             if (op === "shareUser") {
               method = "POST";
               path += "/users";

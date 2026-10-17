@@ -31,8 +31,9 @@ HTTPS is required. **Allow HTTP for Local Development** permits unencrypted HTTP
 | Create, list, get, stop, resume, delete sessions | AgentHub API token |
 | Send messages, read paginated transcript | AgentHub API token |
 | Update session, switch provider account | AgentHub API token (requires current backend remote routes) |
+| List, create and revoke session shares | AgentHub API token + Enterprise license |
 
-Sharing, structured conversations and incoming-message polling are not offered in version 3 until the backend provides secure personal-token endpoints. The legacy JWT trigger remains for existing workflows.
+Structured conversations and incoming-message polling are not offered in version 3 until the backend provides secure personal-token endpoints. The legacy JWT trigger remains for existing workflows.
 
 Create Session uses native n8n fields: name, harness, login account, execution mode, prompt, Git credential access, repositories, project, MCP servers, tool permissions, container resources and expiration. Login accounts and stored GitHub/GitLab credentials load from AgentHub with either authentication method. Connected OAuth repositories can also be browsed with an unrestricted personal token when AgentHub provides `/api/remote/git/providers` and `/api/remote/git/projects`. Older AgentHub servers must be updated for this picker. Restricted personal tokens cannot browse OAuth connections. Version 3 accepts manual project and MCP IDs; their catalog endpoints are not yet available with API tokens. Git credential access can include all accounts (including future ones), selected accounts, or none. Custom MCP JSON is optional and hidden until enabled.
 
