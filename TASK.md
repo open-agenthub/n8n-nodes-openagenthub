@@ -91,3 +91,12 @@
 - GitHub Trusted Publishing mit signierter Provenance erfolgreich: https://github.com/open-agenthub/n8n-nodes-openagenthub/actions/runs/38297735941
 - Temporäre Live-Testzugangsdaten und lokale n8n-Datenbanken entfernt; Testproxy gestoppt.
 - Backend-PR #94 bleibt bis zur Nutzerentscheidung separat; GitLab-Discovery mit PAT benötigt anschließend dessen Deployment.
+
+## API-Token als einzige Standardanmeldung (2026-10-17)
+
+- Nutzerkorrektur: OIDC-Tokens sind kein nutzbarer Login-Weg; AgentHub-API-Token verwenden.
+- Neue Standard-Nodeversion 3: einziges erforderliches Credential OpenAgentHub Personal API; keine Authentifizierungs-Auswahl. Bestehende v1/v2 bleiben kompatibel.
+- Create/Listen/Abrufen/Steuern/Senden/Transkript sowie Update und Account-Wechsel nutzen PAT-Remote-Routen.
+- JWT-only Sharing/Conversation/Messages nicht in v3 anbieten; Legacy-JWT-Trigger klar markieren. Fehlende sichere PAT-Endpunkte an AgentHub-Koordinator übergeben, Entscheidung/Backend-Arbeit dort.
+- Manuelle Projekt-/MCP-IDs bleiben native Felder; verbundene Git-Kataloge über PAT-Remote-API.
+- Version 0.3.0; Regressionstests prüfen Standard-Credentials, alte Versionen, native Erstellung trotz versteckter alter JWT-Auswahl sowie Update/Account-Wechsel über PAT.

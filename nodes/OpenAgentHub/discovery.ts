@@ -21,6 +21,7 @@ function parameter(
 }
 
 export function creationCredential(context: ILoadOptionsFunctions): string {
+  if (typeof context.getNode === "function" && context.getNode().typeVersion >= 3) return "openAgentHubApi";
   const authentication = parameter(
     context,
     "creationAuthentication",
@@ -85,7 +86,7 @@ async function gitCatalog(
     )
       throw new NodeOperationError(
         context.getNode(),
-        "This AgentHub server does not support Git discovery with personal API tokens yet. Update AgentHub to a version providing /api/remote/git/providers, or use User Access Token authentication.",
+        "This AgentHub server does not support Git discovery with personal API tokens yet. Update AgentHub to a version providing /api/remote/git/providers.",
       );
     if (
       credential === "openAgentHubApi" &&
@@ -94,7 +95,7 @@ async function gitCatalog(
     )
       throw new NodeOperationError(
         context.getNode(),
-        "This personal API token cannot browse connected Git accounts. Restricted tokens do not grant OAuth repository access; use an unrestricted personal token or User Access Token authentication.",
+        "This personal API token cannot browse connected Git accounts. Restricted tokens do not grant OAuth repository access; use an unrestricted personal API token.",
       );
     throw new NodeOperationError(context.getNode(), error as Error);
   }

@@ -37,7 +37,7 @@ export class OpenAgentHubTrigger implements INodeType {
   description: INodeTypeDescription = {
     icon: { light: "file:openagenthub.png", dark: "file:openagenthub.png" },
     subtitle: "OpenAgentHub sessions and messages",
-    displayName: "OpenAgentHub Trigger",
+    displayName: "OpenAgentHub Legacy JWT Trigger",
     name: "openAgentHubTrigger",
     group: ["trigger"],
     version: 1,

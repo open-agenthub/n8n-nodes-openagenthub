@@ -325,3 +325,32 @@ test("credential tests reject unsafe URLs before networking and redact transport
   assert.equal(options.followRedirect, false);
   assert.equal(options.followAllRedirects, false);
 });
+
+test("default v3 requires only an AgentHub API token and hides OIDC controls", () => {
+  const node = new OpenAgentHub();
+  assert.equal(node.description.defaultVersion, 3);
+  const description = node.getNodeType(3).description;
+  assert.deepEqual(description.credentials?.map((c) => [c.name, c.required]), [["openAgentHubApi", true]]);
+  assert.ok(!description.properties.some((p) => p.name === "creationAuthentication"));
+  const options = description.properties.find((p) => p.name === "operation")!.options!;
+  assert.ok(options.some((o) => "value" in o && o.value === "switchCredential"));
+  assert.ok(!options.some((o) => "value" in o && o.value === "shareLink"));
+  assert.ok(description.properties.some((p) => p.name === "manualMcpServers"));
+});
+
+test("v3 updates and account switching use PAT remote routes despite stale user auth", async () => {
+  for (const operation of ["update", "switchCredential"]) {
+    const calls: Array<{ credential: string; url: string }> = [];
+    const context = {
+      getInputData: () => [{ json: {} }],
+      getNode: () => ({ name: "test", type: "test", typeVersion: 3, parameters: {}, position: [0, 0] }),
+      getNodeParameter: (name: string) => ({ operation, creationAuthentication: "user", sessionId: "session", settings: '{"title":"New"}', credentialId: "account" })[name as "operation"],
+      getCredentials: async (name: string) => { assert.equal(name, "openAgentHubApi"); return { baseUrl: "https://example.com" }; },
+      continueOnFail: () => false,
+      helpers: { httpRequestWithAuthentication: async (credential: string, options: { url: string }) => { calls.push({ credential, url: options.url }); return { id: "session" }; } },
+    } as unknown as IExecuteFunctions;
+    await new OpenAgentHub().getNodeType(3).execute!.call(context);
+    assert.equal(calls[0].credential, "openAgentHubApi");
+    assert.equal(calls[0].url, `https://example.com/api/remote/sessions/session${operation === "switchCredential" ? "/credential" : ""}`);
+  }
+});
