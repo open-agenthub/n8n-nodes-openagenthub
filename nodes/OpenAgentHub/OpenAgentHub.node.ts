@@ -32,8 +32,9 @@ const remoteOperations = [
   "sendMessage",
   "transcript",
 ];
+const tokenOperations = [...remoteOperations, "update", "switchCredential", "shares", "shareUser", "shareLink", "revokeUser", "revokeLink"];
 class OpenAgentHubVersion implements INodeType {
-  constructor(version: 1 | 2) {
+  constructor(version: 1 | 2 | 3) {
     this.description = {
       ...this.description,
       version,
@@ -55,6 +56,17 @@ class OpenAgentHubVersion implements INodeType {
             ]
           : this.description.credentials,
     };
+    if (version === 3) {
+      this.description.credentials = [{ name: "openAgentHubApi", required: true, testedBy: "testApiCredential" }];
+      this.description.properties = this.description.properties.filter((property) => !["creationAuthentication", "creationCredentialsNotice"].includes(property.name));
+      this.description.properties = this.description.properties.filter((property) => !property.displayOptions?.show?.creationAuthentication?.includes("user")).map((property) => {
+        const copy = structuredClone(property);
+        if (copy.displayOptions?.show?.creationAuthentication) delete copy.displayOptions.show.creationAuthentication;
+        return copy;
+      });
+      const operation = this.description.properties.find((property) => property.name === "operation")!;
+      operation.options = operation.options?.filter((option) => "value" in option && tokenOperations.includes(String(option.value)));
+    }
   }
   methods = { credentialTest: { testApiCredential }, loadOptions };
   description: INodeTypeDescription = {
@@ -65,7 +77,7 @@ class OpenAgentHubVersion implements INodeType {
     name: "openAgentHub",
     group: ["transform"],
     version: 2,
-    defaultVersion: 2,
+    defaultVersion: 3,
     description: "Manage agent sessions, messages and Enterprise sharing",
     defaults: { name: "OpenAgentHub" },
     inputs: [NodeConnectionTypes.Main],
@@ -206,7 +218,7 @@ class OpenAgentHubVersion implements INodeType {
               "Browse connected Git accounts, repositories, projects and MCP servers like the AgentHub UI",
           },
         ],
-        displayOptions: { show: { operation: ["create"], "@version": [2] } },
+        displayOptions: { show: { operation: ["create"], "@version": [2, 3] } },
       },
       {
         displayName:
@@ -214,7 +226,7 @@ class OpenAgentHubVersion implements INodeType {
         name: "creationCredentialsNotice",
         type: "notice",
         default: "",
-        displayOptions: { show: { operation: ["create"], "@version": [2] } },
+        displayOptions: { show: { operation: ["create"], "@version": [2, 3] } },
       },
       ...sessionFields,
       {
@@ -225,7 +237,7 @@ class OpenAgentHubVersion implements INodeType {
         default: "",
         description:
           "Standing instructions appended to the agent system prompt",
-        displayOptions: { show: { operation: ["create"], "@version": [2] } },
+        displayOptions: { show: { operation: ["create"], "@version": [2, 3] } },
       },
       {
         displayName: "Container and Resources",
@@ -279,7 +291,7 @@ class OpenAgentHubVersion implements INodeType {
             description: "Whether to run as root inside the session container",
           },
         ],
-        displayOptions: { show: { operation: ["create"], "@version": [2] } },
+        displayOptions: { show: { operation: ["create"], "@version": [2, 3] } },
       },
       {
         displayName: "Session ID",
@@ -394,7 +406,8 @@ class OpenAgentHubVersion implements INodeType {
       try {
         const op = this.getNodeParameter("operation", i) as string;
         const nativeCreate = op === "create" && this.getNode().typeVersion >= 2;
-        const authentication = nativeCreate
+        const tokenOnly = this.getNode().typeVersion >= 3;
+        const authentication = nativeCreate && !tokenOnly
           ? this.getNodeParameter("creationAuthentication", i, "personal")
           : "personal";
         if (authentication !== "personal" && authentication !== "user")
@@ -403,11 +416,15 @@ class OpenAgentHubVersion implements INodeType {
             "Choose a supported AgentHub authentication method",
           );
         const credential =
-          nativeCreate && authentication === "user"
+          tokenOnly
+            ? "openAgentHubApi"
+            : nativeCreate && authentication === "user"
             ? "openAgentHubEeApi"
             : remoteOperations.includes(op)
               ? "openAgentHubApi"
               : "openAgentHubEeApi";
+        if (tokenOnly && !tokenOperations.includes(op))
+          throw new NodeOperationError(this.getNode(), "This operation requires a personal-token backend endpoint that is not available yet.");
         const prefix =
           credential === "openAgentHubApi"
             ? "/api/remote/sessions"
@@ -482,7 +499,7 @@ class OpenAgentHubVersion implements INodeType {
           case "shareLink":
           case "revokeUser":
           case "revokeLink":
-            path = `/api/ee/sessions/${id}/shares`;
+            path = tokenOnly ? `/api/remote/sessions/${id}/shares` : `/api/ee/sessions/${id}/shares`;
             if (op === "shareUser") {
               method = "POST";
               path += "/users";
@@ -566,15 +583,16 @@ export class OpenAgentHub extends VersionedNodeType {
     const versions = {
       1: new OpenAgentHubVersion(1),
       2: new OpenAgentHubVersion(2),
+      3: new OpenAgentHubVersion(3),
     };
-    const description = versions[2].description;
+    const description = versions[3].description;
     super(versions, {
       displayName: description.displayName,
       name: description.name,
       group: description.group,
       description: description.description,
       icon: description.icon,
-      defaultVersion: 2,
+      defaultVersion: 3,
     });
   }
 }

@@ -1,6 +1,6 @@
 import type { INodeProperties } from "n8n-workflow";
 
-const show = { operation: ["create"], "@version": [2] };
+const show = { operation: ["create"], "@version": [2, 3] };
 const dynamic = (method: string, depends: string[] = []) => ({
   loadOptionsMethod: method,
   loadOptionsDependsOn: ["creationAuthentication", ...depends],
@@ -224,7 +224,7 @@ export const sessionFields: INodeProperties[] = [
     name: "projectId",
     type: "string",
     default: "",
-    displayOptions: { show: { creationAuthentication: ["personal"] } },
+    displayOptions: { show: { "@version": [2, 3], creationAuthentication: ["personal"] } },
   },
   {
     displayName: "MCP Server Names or IDs",
@@ -257,7 +257,7 @@ export const sessionFields: INodeProperties[] = [
         ],
       },
     ],
-    displayOptions: { show: { creationAuthentication: ["personal"] } },
+    displayOptions: { show: { "@version": [2, 3], creationAuthentication: ["personal"] } },
   },
   {
     displayName: "Tool Permissions",

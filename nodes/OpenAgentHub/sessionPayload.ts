@@ -129,7 +129,7 @@ export function buildSessionPayload(
     server?: Array<{ id?: unknown }>;
   };
   const mcpServerIds =
-    text("creationAuthentication", "personal") === "user"
+    context.getNode().typeVersion < 3 && text("creationAuthentication", "personal") === "user"
       ? ids("mcpServerIds")
       : [
           ...new Set(

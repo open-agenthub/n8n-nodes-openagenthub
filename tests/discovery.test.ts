@@ -261,7 +261,7 @@ test("real n8n display rules show native create controls in v2, retain v1 JSON, 
   assert.deepEqual(credentials(2, { ...params, operation: "conversation" }), [
     "openAgentHubEeApi",
   ]);
-  assert.equal(versioned.description.defaultVersion, 2);
+  assert.equal(versioned.description.defaultVersion, 3);
   for (const version of [1, 2]) {
     const description = versioned.getNodeType(version).description;
     const names = description.credentials!.map((credential) => credential.name);
@@ -296,7 +296,7 @@ test("real n8n display rules show native create controls in v2, retain v1 JSON, 
   }
 });
 
-async function executeNative(authentication: string) {
+async function executeNative(authentication: string, version = 2) {
   const calls: { credential: string; options: IDataObject }[] = [];
   const params: Record<string, unknown> = {
     operation: "create",
@@ -311,12 +311,12 @@ async function executeNative(authentication: string) {
     container: { cpu: "1", memory: "2Gi", runAsRoot: false },
   };
   const context = {
-    getNode: () => ({ name: "Node", typeVersion: 2 }),
+    getNode: () => ({ name: "Node", typeVersion: version }),
     getInputData: () => [{ json: {} }],
     getNodeParameter: (name: string, _index: number, fallback: unknown) =>
       params[name] ?? fallback,
     getCredentials: async (name: string) => {
-      const description = new OpenAgentHub().getNodeType(2).description;
+      const description = new OpenAgentHub().getNodeType(version).description;
       const credential = description.credentials!.find(
         (item) => item.name === name,
       );
@@ -328,7 +328,7 @@ async function executeNative(authentication: string) {
         NodeHelpers.displayParameter(
           params,
           credential,
-          { typeVersion: 2 },
+          { typeVersion: version },
           description,
         ),
         "n8n rejects hidden credentials before making requests",
@@ -346,7 +346,7 @@ async function executeNative(authentication: string) {
       },
     },
   } as unknown as IExecuteFunctions;
-  const output = await new OpenAgentHub().getNodeType(2).execute!.call(context);
+  const output = await new OpenAgentHub().getNodeType(version).execute!.call(context);
   return { output, calls };
 }
 
@@ -372,4 +372,11 @@ test("native session creation executes with each selected auth route and maps ty
     assert.deepEqual(output[0][0].pairedItem, { item: 0 });
   }
   await assert.rejects(executeNative("unsupported"), /authentication/);
+});
+
+ test("v3 creation ignores stale OIDC selection and uses native fields with PAT", async () => {
+  const { calls } = await executeNative("user", 3);
+  assert.equal(calls[0].credential, "openAgentHubApi");
+  assert.equal(calls[0].options.url, "https://agenthub.example/api/remote/sessions");
+  assert.equal((calls[0].options.body as IDataObject).title, "Native session");
 });
