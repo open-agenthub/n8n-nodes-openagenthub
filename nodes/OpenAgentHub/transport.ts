@@ -112,34 +112,61 @@ export async function request(
   }
 }
 
+export const CREDENTIAL_TEST_TIMEOUT_MS = 10_000;
+
 export const testApiCredential: import("n8n-workflow").ICredentialTestFunction =
   async function (credential) {
+    let deadline: ReturnType<typeof setTimeout> | undefined;
     try {
       const data = credential.data;
       if (!data || typeof data.token !== "string" || !data.token.trim())
         return { status: "Error", message: "A token is required" };
       const url = baseUrl(data.baseUrl, data.allowLocalHttp);
-      // n8n ICredentialTestFunctions exposes only the legacy request helper.
-      // eslint-disable-next-line @n8n/community-nodes/no-deprecated-workflow-functions
-      await this.helpers.request({
-        method: "GET",
-        uri:
-          url +
-          (credential.type === "openAgentHubApi"
-            ? "/api/remote/sessions"
-            : "/api/sessions"),
-        headers: { Authorization: "Bearer " + data.token },
-        json: true,
-        timeout: 30000,
-        followRedirect: false,
-        followAllRedirects: false,
-      });
+      const personal = credential.type === "openAgentHubApi";
+      // Session listing can involve Kubernetes and every session. Authentication
+      // only needs the scoped credential metadata, never session enumeration.
+      // Keep a wall-clock deadline as well as the helper's network timeout:
+      // a stalled helper must not leave n8n's credential dialog waiting forever.
+      const response = await Promise.race([
+        // n8n ICredentialTestFunctions exposes only the legacy request helper.
+        // eslint-disable-next-line @n8n/community-nodes/no-deprecated-workflow-functions
+        this.helpers.request({
+          method: "GET",
+          uri: url + (personal ? "/api/remote/credentials" : "/api/sessions"),
+          headers: { Authorization: "Bearer " + data.token.trim() },
+          json: true,
+          timeout: CREDENTIAL_TEST_TIMEOUT_MS,
+          followRedirect: false,
+          followAllRedirects: false,
+          resolveWithFullResponse: true,
+          simple: false,
+        }),
+        new Promise<never>((_resolve, reject) => {
+          deadline = setTimeout(() => reject(new Error("credential-test-timeout")), CREDENTIAL_TEST_TIMEOUT_MS);
+        }),
+      ]) as { statusCode?: number; body?: unknown };
+      const code = response?.statusCode;
+      if (code === 401 || code === 403)
+        return { status: "Error", message: "Authentication rejected. Check the API token and its permissions." };
+      if (code !== 200)
+        return { status: "Error", message: "AgentHub did not return a successful API response. Check the base URL, reverse proxy and server availability." };
+      const body = response.body;
+      const valid = personal
+        ? body !== null && typeof body === "object" && !Array.isArray(body) &&
+          "accounts" in body && body.accounts !== null && typeof body.accounts === "object" && !Array.isArray(body.accounts)
+        : Array.isArray(body);
+      if (!valid)
+        return { status: "Error", message: "Unexpected API response. Use the AgentHub base URL, not an OIDC login page or a proxy landing page." };
       return { status: "OK", message: "Authentication succeeded" };
-    } catch {
+    } catch (error) {
+      if ((error instanceof Error && error.message === "credential-test-timeout") ||
+          ["ETIMEDOUT", "ESOCKETTIMEDOUT", "ECONNABORTED"].includes(String((error as { code?: unknown })?.code)))
+        return { status: "Error", message: "Connection test timed out after 10 seconds. Check that the AgentHub URL is reachable from the n8n server." };
       return {
         status: "Error",
-        message:
-          "Authentication failed. Check the base URL, token and server availability.",
+        message: "Authentication failed. Check the base URL, token and server availability.",
       };
+    } finally {
+      if (deadline !== undefined) clearTimeout(deadline);
     }
   };
