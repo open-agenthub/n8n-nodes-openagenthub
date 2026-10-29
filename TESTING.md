@@ -15,3 +15,17 @@ The latest n8n npm installation (2.42.7) failed on an unavailable AWS dependency
 `scripts/test-n8n-live.mjs` targets a fresh, disposable n8n instance on localhost. It creates a test owner, credential and workflow, verifies actual option loading and the served avatar, and prints the workflow ID for execution with n8n's CLI using the same user folder and custom extension directory. It reads the API token from a private JSON file via `OAH_TEST_CREDENTIAL_FILE`; no token is embedded in the script. `OAH_TEST_API_URL` optionally selects a localhost proxy to that same backend. Run only against a disposable local n8n instance. On failed workflow execution, remove any temporary session before disposing of the test instance.
 
 Backend PR #94 separately passed 57 targeted tests (including MVC activation and credential scope checks) and the complete executable backend suite: 1606 passed, 128 PostgreSQL-dependent tests skipped, zero failed. All GitHub PR checks passed. The PR has not been merged or deployed as part of these checks.
+
+## Credential connection regression (0.3.1)
+
+48 automated tests pass, including an independently bounded deadline for a helper that never settles, scoped metadata routing, rejection of redirects/HTML/invalid responses and legacy JWT compatibility.
+
+Real HTTP proof with n8n-core 2.16.1 CredentialTestContext (synthetic token only):
+
+```sh
+npm install --prefix /tmp/oah-auth-proof --ignore-scripts --legacy-peer-deps n8n-core@2.16.1 n8n-workflow@2.16.0
+npm run build
+OAH_N8N_CORE_PATH=/tmp/oah-auth-proof/node_modules/n8n-core node scripts/test-credential-http.cjs
+```
+
+Valid metadata, HTTP 401, login HTML, redirect and stalled response all passed. The stall ended at 10000 ms and the redirect target received no request. This tests the real n8n HTTP helper; it does not inspect the user’s n8n deployment or prove its network configuration.

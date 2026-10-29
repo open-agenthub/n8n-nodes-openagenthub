@@ -22,6 +22,8 @@ Create an OpenAgentHub personal API token in your instance and store it in the *
 
 **Node version 3 (default) uses only the AgentHub personal API token. No OIDC token is needed.** Select your saved **OpenAgentHub Personal API** credential. Existing version 1/2 workflows retain their previous authentication behavior. The JWT credential and trigger are legacy compatibility features, not the recommended login.
 
+The connection test checks scoped credential metadata instead of enumerating sessions. It returns an error after 10 seconds if the server does not respond. The URL must be reachable from the n8n server/container; redirects and login HTML are rejected.
+
 HTTPS is required. **Allow HTTP for Local Development** permits unencrypted HTTP only for `localhost`, `127.0.0.1`, or `::1`. Leave it disabled for hosted instances. In Docker, localhost refers to the n8n container. Self-hosted private hosts are supported: restrict credential editing and network egress in n8n to trusted administrators and hosts. Keep credentials in n8n's encrypted credential store, and treat transcripts, share links and workflow execution data as sensitive.
 
 ## Operations
